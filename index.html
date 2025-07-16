@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Formulaire Promo TERMO</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f1f1f1;
+      padding: 2rem;
+    }
+    .form-container {
+      max-width: 600px;
+      margin: auto;
+      background-color: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    label {
+      display: block;
+      margin: 15px 0 5px;
+      font-weight: bold;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    button {
+      margin-top: 20px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      padding: 12px;
+      width: 100%;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #004999;
+    }
+    .birth-group {
+      display: flex;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h2>Formulaire d'inscription</h2>
+    <form id="promo-form">
+      <label for="nom">Nom</label>
+      <input type="text" id="nom" name="nom" required />
+
+      <label for="prenom">Prénom</label>
+      <input type="text" id="prenom" name="prenom" required />
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required />
+
+      <label for="Numéro">Numéro</label>
+      <input type="text" id="Numéro" name="Numéro" required />
+
+      <label for="birth">Date de naissance</label>
+      <div class="birth-group">
+        <input type="number" id="jour" name="jour" placeholder="Jour" min="1" max="31" required />
+        <select id="mois" name="mois" required>
+          <option value="">Mois</option>
+          <option value="Janvier">Janvier</option>
+          <option value="Février">Février</option>
+          <option value="Mars">Mars</option>
+          <option value="Avril">Avril</option>
+          <option value="Mai">Mai</option>
+          <option value="Juin">Juin</option>
+          <option value="Juillet">Juillet</option>
+          <option value="Août">Août</option>
+          <option value="Septembre">Septembre</option>
+          <option value="Octobre">Octobre</option>
+          <option value="Novembre">Novembre</option>
+          <option value="Décembre">Décembre</option>
+        </select>
+      </div>
+
+      <label for="filière">Filière</label>
+      <textarea id="filière" name="filière" rows="5" placeholder="Entrez votre filière ici..."></textarea>
+
+      <label for="ville">Ville</label>
+      <select id="ville" name="ville" required>
+        <option value="">-- Sélectionne une ville --</option>
+        <option value="ABIDJAN">ABIDJAN</option>
+        <option value="YAMOUSSOUKRO">YAMOUSSOUKRO</option>
+        <option value="BOUAKE">BOUAKE</option>
+        <option value="DALOA">DALOA</option>
+        <option value="BONDOUKOU">BONDOUKOU</option>
+        <option value="KORHOGO">KORHOGO</option>
+        <option value="Autre">Autre</option>
+      </select>
+
+      <label for="Role dans le bureau">Rôle dans le bureau</label>
+      <textarea id="Role dans le bureau" name="Role dans le bureau" rows="5" placeholder="Écris ton rôle dans le bureau ici..."></textarea>
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('promo-form');
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const formData = {
+        nom: form.nom.value.trim(),
+        prenom: form.prenom.value.trim(),
+        email: form.email.value.trim(),
+        numero: form.Numéro.value.trim(),
+        naissance: form.jour.value.trim() + ' ' + form.mois.value,
+        filiere: form.filière.value.trim(),
+        ville: form.ville.value,
+        role: form["Role dans le bureau"].value.trim()
+      };
+
+      const content = Object.entries(formData)
+        .map(([key, value]) => `${key.toUpperCase()}: ${value}`)
+        .join('\n');
+
+      const filename = `${formData.nom}_${formData.prenom}_${Date.now()}.txt`;
+
+      const githubUsername = "Bagui08";
+      const repo = "promo2024"; // ou le nouveau nom de ton dépôt
+      const token = "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"; // ⚠️ à sécuriser si possible
+      const apiUrl = `https://api.github.com/repos/${githubUsername}/${repo}/contents/formulaires/${filename}`;
+
+      const response = await fetch(apiUrl, {
+        method: "PUT",
+        headers: {
+          "Authorization": `token ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: `Ajout de ${filename}`,
+          content: btoa(unescape(encodeURIComponent(content)))
+        })
+      });
+
+      if (response.ok) {
+        alert("Formulaire enregistré avec succès !");
+        form.reset();
+      } else {
+        const error = await response.json();
+        console.error(error);
+        alert("Erreur lors de l'enregistrement.");
+      }
+    });
+  </script>
+</body>
+</html>
