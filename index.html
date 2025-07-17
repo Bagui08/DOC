@@ -49,9 +49,13 @@
     button:hover {
       background-color: #004999;
     }
-    .birth-group {
-      display: flex;
-      gap: 10px;
+    .hidden {
+      display: none;
+    }
+    #result {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -59,9 +63,11 @@
 
   <div class="form-container">
     <h2>Formulaire d'inscription</h2>
-    <form id="promo-form">
+    <form id="form">
+      <input type="hidden" name="access_key" value="27c0f2dc-3626-400e-ad56-1c8948ed40f7">
+
       <label for="nom">Nom</label>
-      <input type="text" id="nom" name="nom" required />
+      <input type="text" id="nom" name="name" required />
 
       <label for="prenom">Prénom</label>
       <input type="text" id="prenom" name="prenom" required />
@@ -70,7 +76,7 @@
       <input type="email" id="email" name="email" required />
 
       <label for="Numéro">Numéro</label>
-      <input type="text" id="Numéro" name="Numéro" required />
+      <input type="text" id="Numéro" name="numero" required />
 
       <label for="birth">Date de naissance</label>
       <div class="birth-group">
@@ -93,7 +99,7 @@
       </div>
 
       <label for="filière">Filière</label>
-      <textarea id="filière" name="filière" rows="5" placeholder="Entrez votre filière ici..."></textarea>
+      <textarea id="filière" name="filiere" rows="3" placeholder="Entrez votre filière ici..." required></textarea>
 
       <label for="ville">Ville</label>
       <select id="ville" name="ville" required>
@@ -107,62 +113,66 @@
         <option value="Autre">Autre</option>
       </select>
 
-      <label for="Role dans le bureau">Rôle dans le bureau</label>
-      <textarea id="Role dans le bureau" name="Role dans le bureau" rows="5" placeholder="Écris ton rôle dans le bureau ici..."></textarea>
+      <label for="Role">Rôle dans le bureau</label>
+      <textarea id="Role" name="role" rows="3" placeholder="Écris ton rôle dans le bureau ici..." required></textarea>
 
-      <button type="submit">Enregistrer</button>
+      <input type="checkbox" name="botcheck" class="hidden">
+
+      <button type="submit">Soumettre</button>
+      <div id="result"></div>
     </form>
   </div>
 
   <script>
-    const form = document.getElementById('promo-form');
+    const form = document.getElementById('form');
+    const result = document.getElementById('result');
 
-    form.addEventListener('submit', async function (e) {
+    form.addEventListener('submit', function(e) {
       e.preventDefault();
+      
+      const formData = new FormData(form);
 
-      const formData = {
-        nom: form.nom.value.trim(),
-        prenom: form.prenom.value.trim(),
-        email: form.email.value.trim(),
-        numero: form.Numéro.value.trim(),
-        naissance: form.jour.value.trim() + ' ' + form.mois.value,
-        filiere: form.filière.value.trim(),
-        ville: form.ville.value,
-        role: form["Role dans le bureau"].value.trim()
-      };
+      // Concaténation de la date de naissance
+      const naissance = formData.get('jour') + ' ' + formData.get('mois');
+      formData.set('naissance', naissance);
 
-      const content = Object.entries(formData)
-        .map(([key, value]) => `${key.toUpperCase()}: ${value}`)
-        .join('\n');
+      formData.delete('jour');
+      formData.delete('mois');
 
-      const filename = `${formData.nom}_${formData.prenom}_${Date.now()}.txt`;
+      const object = Object.fromEntries(formData);
+      const json = JSON.stringify(object);
 
-      const githubUsername = "Bagui08";
-      const repo = "promo2024"; // ou le nouveau nom de ton dépôt
-      const token = "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"; // ⚠️ à sécuriser si possible
-      const apiUrl = `https://api.github.com/repos/${githubUsername}/${repo}/contents/formulaires/${filename}`;
+      result.innerHTML = "Veuillez patienter...";
 
-      const response = await fetch(apiUrl, {
-        method: "PUT",
-        headers: {
-          "Authorization": `token ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message: `Ajout de ${filename}`,
-          content: btoa(unescape(encodeURIComponent(content)))
-        })
+      fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+          },
+          body: json
+      })
+      .then(async (response) => {
+          let json = await response.json();
+          if (response.status === 200) {
+              result.innerHTML = "Formulaire soumis avec succès ✅";
+          } else {
+              console.log(response);
+              result.innerHTML = json.message;
+          }
+      })
+      .catch(error => {
+          console.log(error);
+          result.innerHTML = "Une erreur s'est produite ❌";
+      })
+      .then(function() {
+          form.reset();
+          setTimeout(() => {
+              result.innerHTML = "";
+          }, 3000);
       });
-
-      if (response.ok) {
-        alert("Formulaire enregistré avec succès !");
-        form.reset();
-      } else {
-        const error = await response.json();
-        console.error(error);
-        alert("Erreur lors de l'enregistrement.");
-      }
     });
   </script>
+
 </body>
 </html>
